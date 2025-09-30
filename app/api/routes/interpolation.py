@@ -43,19 +43,3 @@ def interpolate_points(p1, p2, distance_step=DISTANCE_STEP):
                   lon=lon * 180.0 / 3.141592653589793)
         )
     return interpolated
-
-@router.post("/")
-def interpolate(request: InterpolationRequest):
-    interpolated_route = []
-    pts = request.points
-
-    if len(pts) < 2:
-        return {"error": "Precisa de pelo menos 2 pontos para interpolar"}
-
-    for i in range(len(pts) - 1):
-        p1, p2 = pts[i], pts[i+1]
-        interpolated_route.append(p1)
-        interpolated_route.extend(interpolate_points(p1, p2))
-    interpolated_route.append(pts[-1])
-
-    return {"total_points": len(interpolated_route), "points": interpolated_route}
