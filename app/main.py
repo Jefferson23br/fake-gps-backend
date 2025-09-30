@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import interpolation, simulation
+from app.api.routes import simulation, interpolation, route_calculator
 
-app = FastAPI()
+app = FastAPI(title="Fake GPS Backend")
 
 app.add_middleware(
     CORSMiddleware,
@@ -12,10 +12,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 🔹 Inclui as rotas
+app.include_router(route_calculator.router, prefix="/route", tags=["route"])
+app.include_router(interpolation.router, prefix="/interpolate", tags=["interpolation"])
+app.include_router(simulation.router, prefix="/simulate", tags=["simulation"])
 
-app.include_router(interpolation.router, prefix="/interpolate")
-app.include_router(simulation.router, prefix="/simulate")
-
+# 🔹 Rota raiz
 @app.get("/")
 async def root():
-    return {"message": "🚀 Fake GPS Backend is running!"}
+    return {"status": "🚀 Fake GPS Backend is running!"}
