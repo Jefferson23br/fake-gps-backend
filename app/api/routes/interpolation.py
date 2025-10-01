@@ -1,45 +1,42 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-from math import radians, sin, cos, sqrt, atan2
 
 router = APIRouter()
 
-DISTANCE_STEP = 10  # metros
-
 class Point(BaseModel):
-    lon: float
     lat: float
+    lon: float
+    timestamp: int = 0
 
 class InterpolationRequest(BaseModel):
     points: List[Point]
 
-def haversine(lat1, lon1, lat2, lon2):
-    """Calcula distância em metros entre dois pontos (Haversine)."""
-    R = 6371000  # raio da Terra em metros
-    phi1, phi2 = radians(lat1), radians(lat2)
-    dphi = radians(lat2 - lat1)
-    dlambda = radians(lon2 - lon1)
+class InterpolationResponse(BaseModel):
+    points: List[Point]
 
-    a = sin(dphi/2)**2 + cos(phi1) * cos(phi2) * sin(dlambda/2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    return R * c
+@router.post("/interpolate", response_model=InterpolationResponse)
+def interpolate_points(request: InterpolationRequest):
+    """
+    Gera pontos interpolados entre os pontos recebidos.
+    Aqui deixamos simples: apenas replica os pontos originais.
+    (Depois podemos colocar lógica para suavizar distâncias/timestamps).
+    """
+    interpolated_points = []
 
-def interpolate_points(p1, p2, distance_step=DISTANCE_STEP):
-    """Gera pontos intermediários a cada 'distance_step' metros."""
-    lat1, lon1 = radians(p1.lat), radians(p1.lon)
-    lat2, lon2 = radians(p2.lat), radians(p2.lon)
+    for i in range(len(request.points) - 1):
+        start = request.points[i]
+        end = request.points[i + 1]
 
-    total_distance = haversine(p1.lat, p1.lon, p2.lat, p2.lon)
-    num_points = int(total_distance // distance_step)
 
-    interpolated = []
-    for i in range(1, num_points + 1):
-        f = i * distance_step / total_distance
-        lat = lat1 + f * (lat2 - lat1)
-        lon = lon1 + f * (lon2 - lon1)
-        interpolated.append(
-            Point(lat=lat * 180.0 / 3.141592653589793,
-                  lon=lon * 180.0 / 3.141592653589793)
-        )
-    return interpolated
+        interpolated_points.append(start)
+
+
+        mid_lat = (start.lat + end.lat) / 2
+        mid_lon = (start.lon + end.lon) / 2
+        interpolated_points.append(Point(lat=mid_lat, lon=mid_lon, timestamp=start.timestamp + 1))
+
+
+    interpolated_points.append(request.points[-1])
+
+    return InterpolationResponse(points=interpolated_points)
