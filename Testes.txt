@@ -1,4 +1,3 @@
 ./deploy.sh
 
-Get-ChildItem -Path . -Recurse -Include *.png, *.py, *.kts, *.dart, *.xml, *.tsx,*.ts,*.js,*.json -Exclude node_modules,.expo,.git |
->> Where-Object { $_.FullName -notmatch "\\node_modules\\|\\\.expo\\|\\\.git\\" } | Select-Object FullName | Out-File estrutura.txt
+Get-ChildItem -Path . -Recurse -Include *.png, *.py, *.kts, *.dart, *.xml, *.tsx,*.ts,*.js,*.json -Exclude node_modules,.expo,.git | Where-Object { $_.FullName -notmatch "\\node_modules\\|\\\.expo\\|\\\.git\\" } | Select-Object FullName | Out-File estrutura.txt
